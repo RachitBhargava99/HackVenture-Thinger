@@ -9,6 +9,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(127), nullable=False)
     email = db.Column(db.String(63), unique=True, nullable=False)
+    password = db.Column(db.String(63), unique=False, nullable=False)
     isAdmin = db.Column(db.Boolean, nullable=False, default=False)
 
     def get_auth_token(self, expires_seconds=86400):
@@ -52,3 +53,15 @@ class Event(db.Model):
 
     def __repr__(self):
         return f"{self.id}"
+
+
+class Accident(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=True)
+    month = db.Column(db.Integer, nullable=True)
+    day = db.Column(db.Integer, nullable=True)
+    weekday = db.Column(db.Integer, nullable=True)
+    hour = db.Column(db.Integer, nullable=True)
+    minute = db.Column(db.Integer, nullable=True)
+    lat = db.Column(db.Float, nullable=True)
+    lon = db.Column(db.Float, nullable=True)
