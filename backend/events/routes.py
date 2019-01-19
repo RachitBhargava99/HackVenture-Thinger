@@ -3,6 +3,8 @@ from backend.models import User, Event
 from backend import db
 import json
 from sqlalchemy import and_
+import gencoder
+import requests
 
 events = Blueprint('queues', __name__)
 
@@ -70,5 +72,8 @@ def get_active_events():
     else:
         id = user.id
         events = Event.query.filter(and_(Event.user_id != id, type == 0))
-        event_ids = [x.id for x in events]
+        curr_lat = request_json['gps'][0]
+        curr_lon = request_json['gps'][1]
+        event_ids = [x.id for x in events if requests.post(
+            f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={curr_lat},{curr_lon}&destinations=enc:{gencoder.polycoder.super_encoder([x.lat + ', ' + x.lon])}&key={config['MAPS_API_KEY']}")]
         return json.dumps({'status': 1, 'events': event_ids})
