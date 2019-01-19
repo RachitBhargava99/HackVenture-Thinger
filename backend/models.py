@@ -44,6 +44,7 @@ class User(db.Model, UserMixin):
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.Integer, nullable=False, default=-1)
+    severity = db.Column(db.Integer, nullable=False, default=1)
     lat = db.Column(db.Float, nullable=False)
     lon = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.now)

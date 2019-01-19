@@ -12,3 +12,4 @@ class Config:
     MAIL_USE_SSL = True
     MAIL_USERNAME = 'rachitbhargava99@gmail.com'
     MAIL_PASSWORD = 'Ananya88#'
+    MAPS_API_KEY = 'AIzaSyAs5sA8X7MR-vbuNNxfJ4a-xSiUeOLtg-U'

@@ -5,8 +5,14 @@ import json
 from sqlalchemy import and_
 import gencoder
 import requests
+from backend import config
 
 events = Blueprint('queues', __name__)
+
+
+@events.route('/event', methods=['GET'])
+def checker():
+    return "Hello"
 
 
 @events.route('/event/add', methods=['GET', 'POST'])
@@ -74,6 +80,34 @@ def get_active_events():
         events = Event.query.filter(and_(Event.user_id != id, type == 0))
         curr_lat = request_json['gps'][0]
         curr_lon = request_json['gps'][1]
-        event_ids = [x.id for x in events if requests.post(
-            f"https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins={curr_lat},{curr_lon}&destinations=enc:{gencoder.polycoder.super_encoder([x.lat + ', ' + x.lon])}&key={config['MAPS_API_KEY']}")]
+        event_ids = [{'id': x.id, 'lat': x.lat, 'lon': x.lon} for x in events if requests.post(
+            f"https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins={curr_lat},{curr_lon}&destinations=enc:{gencoder.polycoder.super_encoder([str(x.lat) + ', ' + str(x.lon)])}&key={config['MAPS_API_KEY']}").json()['rows'][0]['elements'][0]['distance']['value'] <= 5000]
+        return json.dumps({'status': 1, 'events': event_ids})
+
+
+@events.route('/event/list', methods=['GET', 'POST'])
+def get_past_events():
+    request_json = request.get_json()
+    auth_token = request_json['auth_token']
+    user = User.verify_auth_token(auth_token)
+    if not user:
+        return json.dumps({'status': 0, 'error': "Authentication Failed"})
+    elif not user.isMaster:
+        return json.dumps({'status': 0, 'error': "Access Denied"})
+    else:
+        events = [{'id': x.id, 'lat': x.lat, 'lon':x.lon} for x in Event.query.filter_by(user_id=user.id)]
+        return json.dumps({'status': 1, 'events': events})
+
+
+@events.route('/event/all', methods=['GET', 'POST'])
+def get_all_events()
+    request_json = request.get_json()
+    auth_token = request_json['auth_token']
+    user = User.verify_auth_token(auth_token)
+    if not user:
+        return json.dumps({'status': 0, 'error': "Authentication Failed"})
+    elif not user.isMaster:
+        return json.dumps({'status': 0, 'error': "Access Denied"})
+    else:
+        event_ids = [{'id': x.id, 'lat': x.lat, 'lon': x.lon} for x in Event.query.filter_by(user_id=user.id)]
         return json.dumps({'status': 1, 'events': event_ids})
