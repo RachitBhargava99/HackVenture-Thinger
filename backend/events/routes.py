@@ -100,7 +100,7 @@ def get_past_events():
 
 
 @events.route('/event/all', methods=['GET', 'POST'])
-def get_all_events()
+def get_all_events():
     request_json = request.get_json()
     auth_token = request_json['auth_token']
     user = User.verify_auth_token(auth_token)

@@ -22,7 +22,9 @@ def create_app():
     mail.init_app(app)
 
     from backend.events.routes import events
+    from backend.users.routes import users
     app.register_blueprint(events)
+    app.register_blueprint(users)
 
     db.create_all(app=app)
 

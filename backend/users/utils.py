@@ -1,5 +1,6 @@
 from backend import mail, db
 from flask import url_for
+from flask_mail import Message
 from backend.models import User
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
