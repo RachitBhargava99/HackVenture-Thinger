@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Thinger</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../static/main/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../static/main/vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../static/main/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../static/main/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <![endif]-->
+
+        <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 500px;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      #floating-panel {
+        background-color: #fff;
+        border: 1px solid #999;
+        left: 25%;
+        padding: 5px;
+        position: absolute;
+        top: 10px;
+        z-index: 5;
+      }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Thinger</a>
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li>
+                            <a href="{{ url_for('dash.dashboard') }}"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Sessions<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#">All</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-table fa-fw"></i> Account</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-edit fa-fw"></i> Logout</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    {% with messages = get_flashed_messages(with_categories = true) %}
+            	        {% if messages %}
+	                        {% for category, message in messages %}
+                	            <div class = 'alert alert-{{ category }}'>
+	                                {{ message }}
+	                            </div>
+                            {% endfor %}
+	                    {% endif %}
+                    {% endwith %}
+                    <h1 class="page-header">Dashboard</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw"></i> Map
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                        <div id="map"></div>
+                        <script>
+                            var map, infoWindow, heatmap, tracking;
+
+                              function initMap() {
+                                map = new google.maps.Map(document.getElementById('map'), {
+                                  center: {lat: 42.728351, lng: -84.481976},
+                                  zoom: 6
+                                });
+                                infoWindow = new google.maps.InfoWindow;
+                                tracking = true;
+                                heatmap = new google.maps.visualization.HeatmapLayer({
+                                        data: getAccidentPoints(),
+                                        map: map,
+                                        opacity: 1.0
+                                    });
+
+                                // Try HTML5 geolocation.
+                                if (navigator.geolocation) {
+                                  navigator.geolocation.getCurrentPosition(function(position) {
+                                    var pos = {
+                                      lat: position.coords.latitude,
+                                      lng: position.coords.longitude
+                                    };
+
+                                    curr_lat = position.coords.latitude;
+                                    curr_lon = position.coords.longitude;
+
+                                    map.setCenter(pos);
+                                  }, function() {
+                                    handleLocationError(true, infoWindow, map.getCenter());
+                                  });
+                                } else {
+                                  // Browser doesn't support Geolocation
+                                  handleLocationError(false, infoWindow, map.getCenter());
+                                }
+                              }
+
+                              function selectRoad() {
+                                  heatmap = new google.maps.visualization.HeatmapLayer({
+                                    data: getRoadPoints(),
+                                      map: map
+                                    });
+                              }
+
+                              function selectAccidents() {
+                                  heatmap = new google.maps.visualization.HeatmapLayer({
+                                    data: getAccidentPoints(),
+                                      map: map
+                                    });
+                              }
+
+
+                              function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+                                infoWindow.setPosition(pos);
+                                infoWindow.setContent(browserHasGeolocation ?
+                                                      'Error: The Geolocation service failed.' :
+                                                      'Error: Your browser doesn\'t support geolocation.');
+                                infoWindow.open(map);
+                              }
+
+                              function getRoadPoints() {
+                                  var answer = [
+                                      {% for accident in all_accident_points[:-1] %}
+                                        new google.maps.LatLng({{ accident['lat'] }}, {{ accident['lon'] }}),
+                                      {% endfor %}
+                                      new google.maps.LatLng({{ all_accident_points[-1]['lat'] }}, {{ all_accident_points[-1]['lon'] }})
+                                  ]
+                                  return answer;
+                              }
+
+                              function getAccidentPoints() {
+                                  let answer = [
+                                      {% for accident in all_accident_points %}
+                                          new google.maps.LatLng({{ accident['lat'] }}, {{ accident['lon'] }}),
+                                      {% endfor %}
+                                  ]
+                                  return answer;
+                              }
+
+                              function toggleTracking() {
+                                  if (tracking) {
+                                      tracking = false;
+                                  } else {
+                                      tracking = true;
+                                  }
+                              }
+
+                              setInterval(function() {
+                                if (tracking) {
+                                  if (navigator.geolocation) {
+                                    navigator.geolocation.getCurrentPosition(function (position) {
+                                      var pos = {
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude
+                                      };
+
+                                      map.setCenter(pos);
+                                    }, function () {
+                                      handleLocationError(true, infoWindow, map.getCenter());
+                                    });
+                                  } else {
+                                    // Browser doesn't support Geolocation
+                                    handleLocationError(false, infoWindow, map.getCenter());
+                                  }
+                                }
+                              }, 3000)
+                            </script>
+                        </div>
+                        <script async defer
+                            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAs5sA8X7MR-vbuNNxfJ4a-xSiUeOLtg-U&libraries=visualization&callback=initMap">
+                        </script>
+                            </div>
+                    </div>
+                </div>
+                <!-- /.col-lg-8 -->
+                <div class="col-lg-4">
+                </div>
+                <!-- /.col-lg-4 -->
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="../static/main/vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../static/main/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../static/main/vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="../static/main/dist/js/sb-admin-2.js"></script>
+
+</body>
+
+</html>

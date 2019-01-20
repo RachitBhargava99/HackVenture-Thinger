@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from backend.models import User, Event
+from backend.models import User, Event, Accident
 from backend import db
 import json
 from sqlalchemy import and_
@@ -22,8 +22,6 @@ def add_event():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         lat = request_json['gps'][0]
         lon = request_json['gps'][1]
@@ -41,8 +39,6 @@ def modify_event():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         type = request_json['type']
         curr_event = Event.query.filter_by(id=request_json['id'])
@@ -58,8 +54,6 @@ def get_unlogged_events():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         id = user.id
         event_ids = [x.id for x in Event.query.filter_by(user_id=id, type=-1)]
@@ -73,8 +67,6 @@ def get_active_events():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         id = user.id
         events = Event.query.filter(and_(Event.user_id != id, type == 0))
@@ -92,8 +84,6 @@ def get_past_events():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         events = [{'id': x.id, 'lat': x.lat, 'lon':x.lon} for x in Event.query.filter_by(user_id=user.id)]
         return json.dumps({'status': 1, 'events': events})
@@ -106,8 +96,18 @@ def get_all_events():
     user = User.verify_auth_token(auth_token)
     if not user:
         return json.dumps({'status': 0, 'error': "Authentication Failed"})
-    elif not user.isMaster:
-        return json.dumps({'status': 0, 'error': "Access Denied"})
     else:
         event_ids = [{'id': x.id, 'lat': x.lat, 'lon': x.lon} for x in Event.query.filter_by(user_id=user.id)]
         return json.dumps({'status': 1, 'events': event_ids})
+
+
+@events.route('/event/acc/all', methods=['GET', 'POST'])
+def get_all_accidents():
+    request_json = request.get_json()
+    lat = request_json['lat']
+    lon = request_json['lon']
+    all_accidents = [{'lat': x.lat, 'lon': x.lon} for x in Accident.query.filter(and_(Accident.lat - lat <= 1,
+                                                                                      Accident.lat - lat >= -1,
+                                                                                      Accident.lon - lon <= 1,
+                                                                                      Accident.lon - lon >= -1))]
+    return json.dumps({'status': 1, 'accidents': all_accidents})

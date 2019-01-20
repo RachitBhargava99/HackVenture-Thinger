@@ -23,8 +23,10 @@ def create_app():
 
     from backend.events.routes import events
     from backend.users.routes import users
+    from backend.stats.routes import stats
     app.register_blueprint(events)
     app.register_blueprint(users)
+    app.register_blueprint(stats)
 
     db.create_all(app=app)
 
