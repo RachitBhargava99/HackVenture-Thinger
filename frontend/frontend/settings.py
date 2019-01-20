@@ -121,11 +121,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
-STATICFILES_DIRS=[
-	os.path.join(BASE_DIR,'static')
-]
-
 if os.environ.get('PRODUCTION') is not None:
 	from .settings_prod import *
 else:
