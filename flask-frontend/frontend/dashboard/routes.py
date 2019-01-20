@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
 import geocoder
+from frontend import config
 
 
 dash = Blueprint('dash', __name__)
@@ -16,4 +17,6 @@ def dashboard():
         logout_user()
         return redirect(url_for('common.login'))
     elif data['status'] == 1:
-        return render_template('dashboard.html', all_accident_points=data['accidents'])
+        return render_template('dashboard.html', all_accident_points=data['accidents'], user_id=current_user.id,
+                               auth_token=current_user.auth_token,
+                               LOG_URL=current_app.config['ENDPOINT_ROUTE']+current_app.config['LOG_COOR_URL'])
