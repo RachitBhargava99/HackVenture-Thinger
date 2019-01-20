@@ -7,3 +7,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ENDPOINT_ROUTE = 'https://thinger.appspot.com'
     ACCIDENT_COOR_DATA_URL = '/event/acc/all'
+    LOG_COOR_URL = '/event/add'
