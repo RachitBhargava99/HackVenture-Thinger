@@ -126,3 +126,7 @@ STATICFILES_DIRS=[
 	os.path.join(BASE_DIR,'static')
 ]
 
+if os.environ.get('PRODUCTION') is not None:
+	from .settings_prod import *
+else:
+	from .settings_dev import *
