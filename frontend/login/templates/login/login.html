@@ -1,0 +1,13 @@
+{% if messages %}
+	{% for message in messages %}
+		<p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+	{% endfor %}
+{% endif %}
+<form action = "" method = "post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<input type = "submit" value = "Submit">
+</form>
+{% if isLogin is False %}
+	<p>You will be redirected back to Login.</p>
+{% endif %}
